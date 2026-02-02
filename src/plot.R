@@ -34,17 +34,13 @@ embedding_exists <- function(proj, embedding_name) {
 # Get cell metadata for QC plots
 cell_col_data <- getCellColData(proj_ALL)
 
-# 1. UMAP per sample
-# Check if 'Sample' column exists in cellColData
+# Define embeddings to check
+embeddings <- c("UMAP_RNA", "UMAP_ATAC", "UMAP_Combined")
+embedding_names <- c("RNA", "ATAC", "Combined")
+
+# 1. UMAP PER SAMPLE - All samples together, colored by sample
 if("Sample" %in% colnames(cell_col_data)) {
-  cat("Creating UMAP plots per sample...\n")
-  
-  # Get unique samples
-  samples <- unique(cell_col_data$Sample)
-  
-  # Create sample-colored UMAPs for each embedding type
-  embeddings <- c("UMAP_RNA", "UMAP_ATAC", "UMAP_Combined")
-  embedding_names <- c("RNA", "ATAC", "Combined")
+  cat("Creating UMAP plots colored by sample...\n")
   
   for(i in seq_along(embeddings)) {
     if(embedding_exists(proj_ALL, embeddings[i])) {
@@ -58,7 +54,7 @@ if("Sample" %in% colnames(cell_col_data)) {
       )
       
       base_name <- basename(args$project_name)
-      pdf(paste0(base_name, args$suffix, "_", embedding_names[i], "_UMAP_per_sample.pdf"), 
+      pdf(paste0(base_name, args$suffix, "_", embedding_names[i], "_by_sample.pdf"), 
           width = 12, height = 8)
       print(p_sample)
       dev.off()
@@ -69,16 +65,15 @@ if("Sample" %in% colnames(cell_col_data)) {
     }
   }
 } else {
-  cat("Warning: 'Sample' column not found in cellColData. Skipping UMAP per sample plots.\n")
+  cat("Warning: 'Sample' column not found in cellColData. Skipping UMAP by sample plots.\n")
 }
 
-# 2. UMAP per sample per modality (ATAC/RNA/Combined)
+# 2. UMAP PER SAMPLE PER MODALITY - Separate plots for each sample
 if("Sample" %in% colnames(cell_col_data)) {
-  cat("Creating UMAP plots per sample per modality...\n")
+  cat("Creating separate UMAP plots for each sample...\n")
   
   samples <- unique(cell_col_data$Sample)
   
-  # Loop through each embedding type
   for(embed_idx in seq_along(embeddings)) {
     if(embedding_exists(proj_ALL, embeddings[embed_idx])) {
       # Create a list to store plots for each sample
@@ -89,11 +84,26 @@ if("Sample" %in% colnames(cell_col_data)) {
         sample_cells <- which(cell_col_data$Sample == sample)
         proj_sample <- proj_ALL[sample_cells, ]
         
+        # Try different cluster columns
+        cluster_cols_to_try <- c("Clusters_Combined", "Clusters_RNA", "Clusters_ATAC")
+        cluster_col <- NULL
+        
+        for(cc in cluster_cols_to_try) {
+          if(cc %in% colnames(cell_col_data)) {
+            cluster_col <- cc
+            break
+          }
+        }
+        
+        if(is.null(cluster_col)) {
+          cluster_col <- "Sample"  # Fallback to sample if no clusters
+        }
+        
         # Create UMAP for this sample
         p <- plotEmbedding(
           ArchRProj = proj_sample,
           colorBy = "cellColData",
-          name = "Clusters_Combined",  # Using combined clusters as default
+          name = cluster_col,
           embedding = embeddings[embed_idx],
           plotAs = "points",
           size = 1.0,
@@ -110,29 +120,28 @@ if("Sample" %in% colnames(cell_col_data)) {
       n_rows <- ceiling(length(samples) / n_cols)
       
       combined_plot <- wrap_plots(sample_plots, ncol = n_cols, nrow = n_rows) + 
-        plot_annotation(title = paste(embedding_names[embed_idx], "UMAP - Per Sample"),
+        plot_annotation(title = paste(embedding_names[embed_idx], "UMAP - Separate by Sample"),
                         theme = theme(plot.title = element_text(hjust = 0.5, size = 14)))
       
       # Save combined plot
       base_name <- basename(args$project_name)
       pdf(paste0(base_name, args$suffix, "_", embedding_names[embed_idx], 
-                 "_UMAP_per_sample_grid.pdf"), 
+                 "_per_sample_separate.pdf"), 
           width = 6 * n_cols, height = 5 * n_rows)
       print(combined_plot)
       dev.off()
       
-      cat(sprintf("  Created %s UMAP grid with %d samples\n", 
+      cat(sprintf("  Created %s UMAP separate plots for %d samples\n", 
                   embedding_names[embed_idx], length(samples)))
     } else {
-      cat(sprintf("  Skipping %s embedding grid - embedding not found\n", embedding_names[embed_idx]))
+      cat(sprintf("  Skipping %s embedding - not found\n", embedding_names[embed_idx]))
     }
   }
 }
 
-# Original UMAP plots (RNA, ATAC, Combined)
-cat("Creating standard UMAP plots...\n")
+# 3. STANDARD UMAPS - Colored by clusters (the original plots)
+cat("Creating standard cluster-colored UMAP plots...\n")
 
-# Check which embeddings exist and create plots
 for(modality in c("RNA", "ATAC", "Combined")) {
   embedding_name <- paste0("UMAP_", modality)
   cluster_name <- paste0("Clusters_", modality)
@@ -150,11 +159,11 @@ for(modality in c("RNA", "ATAC", "Combined")) {
     )
     
     base_name <- basename(args$project_name)
-    pdf(paste0(base_name, args$suffix, "_", modality, "_UMAP.pdf"), width = 12, height = 8)
+    pdf(paste0(base_name, args$suffix, "_", modality, "_clusters_UMAP.pdf"), width = 12, height = 8)
     print(p)
     dev.off()
     
-    cat(sprintf("  Created %s UMAP\n", modality))
+    cat(sprintf("  Created %s UMAP colored by %s clusters\n", modality, modality))
   } else {
     if(!embedding_exists(proj_ALL, embedding_name)) {
       cat(sprintf("  Skipping %s UMAP - embedding not found\n", modality))
@@ -164,7 +173,7 @@ for(modality in c("RNA", "ATAC", "Combined")) {
   }
 }
 
-# 3. QC plots per clusters
+# 4. QC PLOTS PER CLUSTERS
 cat("Creating QC plots per clusters...\n")
 
 # Define cluster columns to check
@@ -263,4 +272,9 @@ if(length(cluster_columns) > 0 && length(qc_metrics) > 0) {
 }
 
 cat("=== All PDF plots created successfully ===\n")
+cat("Output files will include:\n")
+cat("  1. *_RNA_by_sample.pdf - All cells colored by sample\n")
+cat("  2. *_RNA_per_sample_separate.pdf - Each sample separately\n")
+cat("  3. *_RNA_clusters_UMAP.pdf - Colored by RNA clusters\n")
+cat("  4. QC plots for each cluster type\n")
 cat("Output files saved with base name:", basename(args$project_name), "\n")

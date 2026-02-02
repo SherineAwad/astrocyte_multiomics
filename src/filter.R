@@ -149,7 +149,8 @@ print(table(proj_ALL$Sample))
 
 # Create POST-FILTERING QC plots
 cat("\n=== Generating Post-filtering QC Plots ===\n")
-figure_name <- paste0(output_dir, "_postFilterQC.pdf")
+figure_name <- paste0(input_dir, "_postFilterQC.pdf")
+
 pdf(file = figure_name, width = 12, height = 8)
 
 # Create each plot separately and print them in the PDF
