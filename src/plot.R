@@ -33,10 +33,6 @@ embedding_exists <- function(proj, embedding_name) {
 # Get cell metadata
 cell_col_data <- getCellColData(proj_ALL)
 
-# Define embeddings
-embeddings <- c("UMAP_RNA", "UMAP_ATAC", "UMAP_Combined")
-embedding_names <- c("RNA", "ATAC", "Combined")
-
 # ORIGINAL PLOTS - EXACT SAME AS BEFORE
 p1 <- plotEmbedding(
   ArchRProj = proj_ALL,
@@ -81,73 +77,120 @@ dev.off()
 
 cat("Created original 3 UMAP plots\n")
 
-# 1. NEW: UMAP per sample (with NEW file names)
+# 1. UMAP per sample (with NEW file names)
 if("Sample" %in% colnames(cell_col_data)) {
   cat("Creating UMAP plots per sample...\n")
   
-  for(i in seq_along(embeddings)) {
-    if(embedding_exists(proj_ALL, embeddings[i])) {
-      p_sample <- plotEmbedding(
-        ArchRProj = proj_ALL,
-        colorBy = "cellColData",
-        name = "Sample",
-        embedding = embeddings[i],
-        plotAs = "points",
-        size = 0.5
-      )
-      
-      pdf(paste0(base_name, args$suffix, "_", embedding_names[i], "_SAMPLE_UMAP.pdf"), 
-          width = 12, height = 8)
-      print(p_sample)
-      dev.off()
-      
-      cat(sprintf("  Created %s_SAMPLE_UMAP.pdf\n", embedding_names[i]))
-    }
+  # RNA UMAP colored by sample
+  if(embedding_exists(proj_ALL, "UMAP_RNA")) {
+    p_sample_rna <- plotEmbedding(
+      ArchRProj = proj_ALL,
+      colorBy = "cellColData",
+      name = "Sample",
+      embedding = "UMAP_RNA",
+      plotAs = "points",
+      size = 0.5
+    )
+    
+    pdf(paste0(base_name, args$suffix, "_RNA_SAMPLE_UMAP.pdf"), width = 12, height = 8)
+    print(p_sample_rna)
+    dev.off()
+    cat("  Created RNA_SAMPLE_UMAP.pdf\n")
+  }
+  
+  # ATAC UMAP colored by sample
+  if(embedding_exists(proj_ALL, "UMAP_ATAC")) {
+    p_sample_atac <- plotEmbedding(
+      ArchRProj = proj_ALL,
+      colorBy = "cellColData",
+      name = "Sample",
+      embedding = "UMAP_ATAC",
+      plotAs = "points",
+      size = 0.5
+    )
+    
+    pdf(paste0(base_name, args$suffix, "_ATAC_SAMPLE_UMAP.pdf"), width = 12, height = 8)
+    print(p_sample_atac)
+    dev.off()
+    cat("  Created ATAC_SAMPLE_UMAP.pdf\n")
+  }
+  
+  # Combined UMAP colored by sample
+  if(embedding_exists(proj_ALL, "UMAP_Combined")) {
+    p_sample_combined <- plotEmbedding(
+      ArchRProj = proj_ALL,
+      colorBy = "cellColData",
+      name = "Sample",
+      embedding = "UMAP_Combined",
+      plotAs = "points",
+      size = 0.5
+    )
+    
+    pdf(paste0(base_name, args$suffix, "_Combined_SAMPLE_UMAP.pdf"), width = 12, height = 8)
+    print(p_sample_combined)
+    dev.off()
+    cat("  Created Combined_SAMPLE_UMAP.pdf\n")
   }
 }
 
-# 2. NEW: UMAP per sample per modality (with NEW file names)
-if("Sample" %in% colnames(cell_col_data)) {
-  cat("Creating UMAP per sample per modality...\n")
+# 2. UMAP per sample for COMBINED embedding only (removed RNA/ATAC)
+if("Sample" %in% colnames(cell_col_data) && embedding_exists(proj_ALL, "UMAP_Combined")) {
+  cat("Creating UMAP per sample for Combined embedding...\n")
   
   samples <- unique(cell_col_data$Sample)
+  sample_plots <- list()
   
-  for(embed_idx in seq_along(embeddings)) {
-    if(embedding_exists(proj_ALL, embeddings[embed_idx])) {
-      sample_plots <- list()
-      
-      for(sample in samples) {
-        sample_cells <- which(cell_col_data$Sample == sample)
-        proj_sample <- proj_ALL[sample_cells, ]
-        
-        p <- plotEmbedding(
-          ArchRProj = proj_sample,
-          colorBy = "cellColData",
-          name = "Clusters_Combined",
-          embedding = embeddings[embed_idx],
-          plotAs = "points",
-          size = 1.0
-        ) + ggtitle(paste(sample, "-", embedding_names[embed_idx]))
-        
-        sample_plots[[sample]] <- p
-      }
-      
-      n_cols <- min(3, length(samples))
-      n_rows <- ceiling(length(samples) / n_cols)
-      
-      combined_plot <- wrap_plots(sample_plots, ncol = n_cols, nrow = n_rows)
-      
-      pdf(paste0(base_name, args$suffix, "_", embedding_names[embed_idx], "_SAMPLES_GRID.pdf"), 
-          width = 6 * n_cols, height = 5 * n_rows)
-      print(combined_plot)
-      dev.off()
-      
-      cat(sprintf("  Created %s_SAMPLES_GRID.pdf\n", embedding_names[embed_idx]))
-    }
+  for(sample in samples) {
+    sample_cells <- which(cell_col_data$Sample == sample)
+    proj_sample <- proj_ALL[sample_cells, ]
+    
+    p <- plotEmbedding(
+      ArchRProj = proj_sample,
+      colorBy = "cellColData",
+      name = "Clusters_Combined",
+      embedding = "UMAP_Combined",
+      plotAs = "points",
+      size = 1.0
+    ) + ggtitle(sample)
+    
+    sample_plots[[sample]] <- p
   }
+  
+  n_cols <- min(3, length(samples))
+  n_rows <- ceiling(length(samples) / n_cols)
+  
+  combined_plot <- wrap_plots(sample_plots, ncol = n_cols, nrow = n_rows)
+  
+  pdf(paste0(base_name, args$suffix, "_Combined_SAMPLES_GRID.pdf"), 
+      width = 6 * n_cols, height = 5 * n_rows)
+  print(combined_plot)
+  dev.off()
+  
+  cat("  Created Combined_SAMPLES_GRID.pdf\n")
 }
 
-# 3. NEW: QC plots per clusters (with NEW file names)
+# 3. NEW: BOTH SAMPLES TOGETHER with clusters for annotation
+if("Sample" %in% colnames(cell_col_data) && embedding_exists(proj_ALL, "UMAP_Combined")) {
+  cat("Creating both samples together with clusters...\n")
+  
+  # Create plot with both samples, colored by clusters
+  p_both_samples <- plotEmbedding(
+    ArchRProj = proj_ALL,
+    colorBy = "cellColData",
+    name = "Clusters_Combined",
+    embedding = "UMAP_Combined",
+    plotAs = "points",
+    size = 0.5
+  )
+  
+  pdf(paste0(base_name, args$suffix, "_BothSamples_CombinedClusters_UMAP.pdf"), width = 12, height = 8)
+  print(p_both_samples)
+  dev.off()
+  
+  cat("  Created BothSamples_CombinedClusters_UMAP.pdf\n")
+}
+
+# 4. QC plots per clusters
 cat("Creating QC plots per clusters...\n")
 
 cluster_columns <- c("Clusters_RNA", "Clusters_ATAC", "Clusters_Combined")
@@ -206,5 +249,6 @@ cat("  ", base_name, args$suffix, "_ATAC_UMAP.pdf\n", sep="")
 cat("  ", base_name, args$suffix, "_Combined_UMAP.pdf\n", sep="")
 cat("\nNew files added:\n")
 cat("  *_SAMPLE_UMAP.pdf (colored by sample)\n")
-cat("  *_SAMPLES_GRID.pdf (each sample separately)\n")
+cat("  Combined_SAMPLES_GRID.pdf (each sample separately - Combined only)\n")
+cat("  BothSamples_CombinedClusters_UMAP.pdf (both samples with clusters)\n")
 cat("  *_QC.pdf (QC metrics per cluster)\n")
