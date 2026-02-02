@@ -1,6 +1,12 @@
 # Astrocyte multiomics data: preprocessing for scenic+ 
 
 
+### Samples 
+
+- Control,13005-TH-1/
+- KO: 13005-TH-2/
+
+
 ### Filtering Thresholds
 
 We used the following filtering criteria: 
