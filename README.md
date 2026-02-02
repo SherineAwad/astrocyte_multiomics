@@ -13,16 +13,16 @@ We used the following filtering criteria:
 * **Maximum number of UMIs in RNA-seq**: Filters out cells with abnormally high counts that may indicate doublets. Default is **30000**.
 
 
-[pre filter](Astrocyte_preFilterQC.pdf)
+[pre filter](figures/Astrocyte_preFilterQC.pdf)
 
-[post filter](Astrocyte_filtered_postFilterQC.pdf)
+[post filter](figures/Astrocyte_filtered_postFilterQC.pdf)
 
 
 ## UMAPs
 
-![](Astrocyte_filtered_UMAP_Combined_UMAP.png)
-![](Astrocyte_filtered_UMAP_RNA_UMAP.png)
-![](Astrocyte_filtered_UMAP_ATAC_UMAP.png)
+![](figures/Astrocyte_filtered_UMAP_Combined_UMAP.png)
+![](figures/Astrocyte_filtered_UMAP_RNA_UMAP.png)
+![](figures/Astrocyte_filtered_UMAP_ATAC_UMAP.png)
 
 
 
