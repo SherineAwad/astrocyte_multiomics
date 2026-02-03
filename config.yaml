@@ -9,4 +9,4 @@ threads: 4
 # Suffixes for new steps
 filter_suffix: "_filtered"
 umap_suffix: "_UMAP"
-
+MarkerGenes: markers.txt

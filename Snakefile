@@ -1,14 +1,27 @@
 # Snakefile
 configfile: "config.yaml"
 
+
 rule all:
     input:
+        # Directories
         directory(config["project_name"]),
         directory(config["project_name"] + config["filter_suffix"]),
         directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]),
+        
+        # Individual UMAP PDF files
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_Combined_UMAP.pdf",
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_ATAC_UMAP.pdf",
-        config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf"
+        config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
+        
+        # Expanded marker gene UMAP PDF files
+        expand(
+       "{project}_{marker}_UMAP.pdf",
+        project=[config["project_name"] + config["filter_suffix"] + config["umap_suffix"]],
+        marker=config["MarkerGenes"]
+        )
+
+
 rule preprocess:
     input:
         config_csv=config["samples_csv"]
@@ -59,3 +72,19 @@ rule plot:
     shell:
         "Rscript src/plot.R --project_name {params.project}"
 
+
+
+rule plotMarkers:
+    input: 
+        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"])
+    output:
+        expand(
+            "{project}_{marker}_UMAP.pdf",
+            project=config["project_name"] + config["filter_suffix"] + config["umap_suffix"],
+            marker=config["MarkerGenes"]
+        )
+    params: 
+        project=config["project_name"] + config["filter_suffix"] + config["umap_suffix"], 
+        markers = config['MarkerGenes']
+    shell: 
+       "Rscript src/plotMarkers.R --project_name {params.project} --markers {params.markers} "
