@@ -1,6 +1,12 @@
 # Snakefile
 configfile: "config.yaml"
 
+def read_markers(filepath):
+    with open(filepath, 'r') as f:
+        # Read lines, strip whitespace, filter out empty lines
+        markers = [line.strip() for line in f if line.strip()]
+    return markers
+
 
 rule all:
     input:
@@ -8,17 +14,14 @@ rule all:
         directory(config["project_name"]),
         directory(config["project_name"] + config["filter_suffix"]),
         directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]),
-        
+
         # Individual UMAP PDF files
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_Combined_UMAP.pdf",
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_ATAC_UMAP.pdf",
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
-        
-        # Expanded marker gene UMAP PDF files
         expand(
-       "{project}_{marker}_UMAP.pdf",
-        project=[config["project_name"] + config["filter_suffix"] + config["umap_suffix"]],
-        marker=config["MarkerGenes"]
+            config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_{marker}_UMAP.pdf",
+            marker=read_markers(config["MarkerGenes"])
         )
 
 
@@ -62,7 +65,7 @@ rule addUMAP:
 
 rule plot:
     input:
-        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"])
+        config["project_name"] + config["filter_suffix"] + config["umap_suffix"]
     params:
         project=config["project_name"] + config["filter_suffix"] + config["umap_suffix"]
     output:
@@ -73,18 +76,14 @@ rule plot:
         "Rscript src/plot.R --project_name {params.project}"
 
 
-
 rule plotMarkers:
-    input: 
-        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"])
+    input:
+        config["project_name"] + config["filter_suffix"] + config["umap_suffix"],
+        marker_file=config['MarkerGenes']
     output:
-        expand(
-            "{project}_{marker}_UMAP.pdf",
-            project=config["project_name"] + config["filter_suffix"] + config["umap_suffix"],
-            marker=config["MarkerGenes"]
-        )
-    params: 
-        project=config["project_name"] + config["filter_suffix"] + config["umap_suffix"], 
-        markers = config['MarkerGenes']
-    shell: 
-       "Rscript src/plotMarkers.R --project_name {params.project} --markers {params.markers} "
+        "MARKERS_DONE.txt"
+    params:
+        project=config["project_name"] + config["filter_suffix"] + config["umap_suffix"],
+        markers=config['MarkerGenes']
+    shell:
+        "Rscript src/plotMarkers.R --project_name {params.project} --markers {params.markers} && touch MARKERS_DONE.txt"
