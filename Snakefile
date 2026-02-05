@@ -1,18 +1,6 @@
 # Snakefile
 configfile: "config.yaml"
 
-def read_markers(filepath):
-    with open(filepath, 'r') as f:
-        markers = []
-        seen = set()
-        for line in f:
-            marker = line.strip()
-            if marker and marker not in seen:
-                markers.append(marker)
-                seen.add(marker)
-    return markers
-
-
 rule all:
     input:
         # Directories
@@ -25,12 +13,7 @@ rule all:
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_ATAC_UMAP.pdf",
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
 
-        # Marker UMAPs
-        expand(
-            config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_{marker}_UMAP.pdf",
-            marker=read_markers(config['MarkerGenes'])
-        )
-
+        "markers_done.txt"
 
 rule preprocess:
     input:
@@ -88,16 +71,14 @@ rule plot:
 
 rule plotMarkers:
     input:
-        config["project_name"] + config["filter_suffix"] + config["umap_suffix"],
-        marker_file=config['MarkerGenes']
+        dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]),
     output:
-        expand(
-            config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_{marker}_UMAP.pdf",
-            marker=read_markers(config['MarkerGenes'])
-        )
+        "markers_done.txt" 
     params:
         project=config["project_name"] + config["filter_suffix"] + config["umap_suffix"],
         markers=config['MarkerGenes']
     shell:
-        "Rscript src/plotMarkers.R --project_name {params.project} --markers {params.markers}"
-
+        """
+        Rscript src/plotMarkers.R --project_name {params.project} --markers {params.markers} 
+        touch {output}
+        """
