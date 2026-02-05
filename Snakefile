@@ -3,17 +3,15 @@ configfile: "config.yaml"
 
 rule all:
     input:
-        # Directories
         directory(config["project_name"]),
         directory(config["project_name"] + config["filter_suffix"]),
         directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]),
-
-        # Main UMAP plots
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_Combined_UMAP.pdf",
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_ATAC_UMAP.pdf",
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
-
-        "markers_done.txt"
+        "markers_done.txt",
+        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]) + config["annotation_suffix"],
+        config["project_name"] + config["filter_suffix"] + config["umap_suffix"]+ "_annotated.png"
 
 rule preprocess:
     input:
@@ -73,7 +71,7 @@ rule plotMarkers:
     input:
         dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]),
     output:
-        "markers_done.txt" 
+        out= "markers_done.txt" 
     params:
         project=config["project_name"] + config["filter_suffix"] + config["umap_suffix"],
         markers=config['MarkerGenes']
@@ -82,3 +80,22 @@ rule plotMarkers:
         Rscript src/plotMarkers.R --project_name {params.project} --markers {params.markers} 
         touch {output}
         """
+
+
+rule annotate:
+    input:
+       dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"])
+    output:
+       dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"]),
+       annotated_png=config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_annotated.png"
+    params:
+          annotations=config['ANNOTATIONS'],
+          suffix=config['annotation_suffix']
+    shell:
+      "Rscript src/annotate.R --project_name {input.dir} --annotation_file {params.annotations} --suffix {params.suffix}"
+
+
+
+
+
+ 

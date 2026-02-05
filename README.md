@@ -113,6 +113,10 @@ We used the following filtering criteria:
 
 
 
+## Annotations: NEED MORE WORK HERE 
+
+![annotations](figures/Astrocyte_filtered_UMAP_annotated.png?v=1)
+
 
 
 
