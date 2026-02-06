@@ -3,8 +3,12 @@
 
 ### Samples 
 
-- Control,13005-TH-1/
-- KO: 13005-TH-2/
+| Sample  | ATAC Fragments Path                       | Feature Matrix Path                             |
+|---------|-------------------------------------------|------------------------------------------------|
+| KO1     | 13005-TH-2/outs/atac_fragments.tsv.gz     | 13005-TH-2/outs/filtered_feature_bc_matrix.h5 |
+| Control | 13784-TH-1/outs/atac_fragments.tsv.gz     | 13005-TH-1/outs/filtered_feature_bc_matrix.h5 |
+| KO2     | 13784-TH-2/outs/atac_fragments.tsv.gz     | 13005-TH-2/outs/filtered_feature_bc_matrix.h5 |
+
 
 
 ### Filtering Thresholds
