@@ -9,9 +9,9 @@ rule all:
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_Combined_UMAP.pdf",
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_ATAC_UMAP.pdf",
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
-        "markers_done.txt",
-        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]) + config["annotation_suffix"],
-        config["project_name"] + config["filter_suffix"] + config["umap_suffix"]+ "_annotated.png"
+        #"markers_done.txt",
+        #directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]) + config["annotation_suffix"],
+        #config["project_name"] + config["filter_suffix"] + config["umap_suffix"]+ "_annotated.png"
 
 rule preprocess:
     input:
@@ -35,9 +35,16 @@ rule filter:
         project=config["project_name"],
         genome=config["genome"],
         threads=config["threads"],
-        suffix=config["filter_suffix"]
+        suffix=config["filter_suffix"],
+        min_tss_enrichment =config['min_tss_enrichment'], 
+        min_nfrags = config['min_nfrags'], 
+        min_gex_ngenes = config['min_gex_ngenes'], 
+        max_gex_ngenes =config['max_gex_ngenes'],
+        min_gex_numi =config['min_gex_numi'],
+        max_gex_numi =config['max_gex_numi']
     shell:
-        "Rscript src/filter.R --project_name {params.project} --genome {params.genome} --threads {params.threads} --suffix {params.suffix}"
+        "Rscript src/filter.R --project_name {params.project} --genome {params.genome} --threads {params.threads} --suffix {params.suffix} --min_tss_enrichment {params.min_tss_enrichment} --min_nfrags {params.min_nfrags} --min_gex_ngenes {params.min_gex_ngenes} --max_gex_ngenes {params.max_gex_ngenes} --min_gex_numi {params.min_gex_numi} --max_gex_numi {params.max_gex_numi}"
+
 
 
 rule addUMAP:
@@ -94,8 +101,3 @@ rule annotate:
     shell:
       "Rscript src/annotate.R --project_name {input.dir} --annotation_file {params.annotations} --suffix {params.suffix}"
 
-
-
-
-
- 

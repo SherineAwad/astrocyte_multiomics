@@ -31,39 +31,39 @@ We used the following filtering criteria:
 ## UMAPs
 
 #### RNA 
-![](figures/Astrocyte_filtered_UMAP_RNA_UMAP.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_RNA_UMAP.png?v=5)
 #### ATAC
-![](figures/Astrocyte_filtered_UMAP_ATAC_UMAP.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_ATAC_UMAP.png?v=5)
 #### Combined 
-![](figures/Astrocyte_filtered_UMAP_Combined_UMAP.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_Combined_UMAP.png?v=5)
 
 ## QCs 
 
 #### RNA 
-![](figures/Astrocyte_filtered_UMAP_Clusters_RNA_QC.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_Clusters_RNA_QC.png?v=5)
 #### ATAC 
-![](figures/Astrocyte_filtered_UMAP_Clusters_ATAC_QC.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_Clusters_ATAC_QC.png?v=5)
 #### Combined 
-![](figures/Astrocyte_filtered_UMAP_Clusters_Combined_QC.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_Clusters_Combined_QC.png?v=5)
 
 
 ## Per sample UMAP 
 
 #### RNA
-![](figures/Astrocyte_filtered_UMAP_RNA_SAMPLE_UMAP.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_RNA_SAMPLE_UMAP.png?v=5)
 #### ATAC
-![](figures/Astrocyte_filtered_UMAP_ATAC_SAMPLE_UMAP.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_ATAC_SAMPLE_UMAP.png?v=5)
 #### Combined
-![](figures/Astrocyte_filtered_UMAP_Combined_SAMPLE_UMAP.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_Combined_SAMPLE_UMAP.png?v=5)
 
 
 ## Clusters 
 
-![](figures/Astrocyte_filtered_UMAP_Combined_SAMPLES_GRID.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_Combined_SAMPLES_GRID.png?v=5)
 
 #### Combined 
 
-![](figures/Astrocyte_filtered_UMAP_BothSamples_CombinedClusters_UMAP.png?v=4)
+![](figures/Astrocyte_filtered_UMAP_BothSamples_CombinedClusters_UMAP.png?v=5)
 
 ## Marker genes 
 
