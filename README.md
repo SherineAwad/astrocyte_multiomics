@@ -3,24 +3,33 @@
 
 ### Samples 
 
-| Sample  | ATAC Fragments Path                       | Feature Matrix Path                             |
-|---------|-------------------------------------------|------------------------------------------------|
-| KO1     | 13005-TH-2/outs/atac_fragments.tsv.gz     | 13005-TH-2/outs/filtered_feature_bc_matrix.h5 |
-| Control | 13784-TH-1/outs/atac_fragments.tsv.gz     | 13005-TH-1/outs/filtered_feature_bc_matrix.h5 |
-| KO2     | 13784-TH-2/outs/atac_fragments.tsv.gz     | 13005-TH-2/outs/filtered_feature_bc_matrix.h5 |
-
+| sample_name | atac_file                             | rna_file                                 |
+| ----------- | ------------------------------------- | ---------------------------------------- |
+| KO1         | 13005-TH-2/outs/atac_fragments.tsv.gz | 13005-TH-2/outs/raw_feature_bc_matrix.h5 |
+| Control     | 13784-TH-1/outs/atac_fragments.tsv.gz | 13784-TH-1/outs/raw_feature_bc_matrix.h5 |
+| KO2         | 13784-TH-2/outs/atac_fragments.tsv.gz | 13784-TH-2/outs/raw_feature_bc_matrix.h5 |
 
 
 ### Filtering Thresholds
 
 We used the following filtering criteria: 
 
-* **Minimum TSS enrichment**: Ensures sufficient transcription start site (TSS) signal for ATAC-seq data. Default is **10**.
-* **Minimum number of fragments**: Filters out cells with too few ATAC-seq fragments. Default is **5000**.
-* **Minimum number of genes detected in RNA-seq**: Excludes low-quality cells with sparse transcript coverage. Default is **1000**.
-* **Maximum number of genes detected in RNA-seq**: Removes potential multiplets or highly overexpressed cells. Default is **7000**.
-* **Minimum number of UMIs in RNA-seq**: Ensures sufficient sequencing depth per cell. Default is **1500**.
-* **Maximum number of UMIs in RNA-seq**: Filters out cells with abnormally high counts that may indicate doublets. Default is **30000**.
+* **Minimum TSS enrichment**: Ensures sufficient transcription start site (TSS) signal for ATAC-seq data. Threshold is set to **3**.
+* **Minimum number of fragments**: Filters out cells with too few ATAC-seq fragments. Threshold is set to **50**.
+* **Minimum number of genes detected in RNA-seq**: Excludes low-quality cells with sparse transcript coverage. Threshold is set to **20**.
+* **Maximum number of genes detected in RNA-seq**: Removes potential multiplets or highly overexpressed cells. Threshold is set to **15,000**.
+* **Minimum number of UMIs in RNA-seq**: Ensures sufficient sequencing depth per cell. Threshold is set to **50**.
+* **Maximum number of UMIs in RNA-seq**: Filters out cells with abnormally high counts that may indicate doublets. Threshold is set to **75,000**.
+
+### Sample-wise Filtering
+
+| Sample  | Before | After | % Kept |
+|---------|--------|-------|--------|
+| KO2     | 59,364 | 26,915 | 45.3% |
+| Control | 60,328 | 27,778 | 46.0% |
+| KO1     | 17,295 | 7,529  | 43.5% |
+
+---
 
 
 [pre filter](figures/Astrocyte_preFilterQC.pdf)
@@ -28,98 +37,128 @@ We used the following filtering criteria:
 [post filter](figures/Astrocyte_postFilterQC.pdf)
 
 
+
+# old from here 
+
+
 ## UMAPs
 
 #### RNA 
-![](figures/Astrocyte_filtered_UMAP_RNA_UMAP.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_RNA_UMAP.png?v=6)
 #### ATAC
-![](figures/Astrocyte_filtered_UMAP_ATAC_UMAP.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_ATAC_UMAP.png?v=6)
 #### Combined 
-![](figures/Astrocyte_filtered_UMAP_Combined_UMAP.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_Combined_UMAP.png?v=6)
 
 ## QCs 
 
 #### RNA 
-![](figures/Astrocyte_filtered_UMAP_Clusters_RNA_QC.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_Clusters_RNA_QC.png?v=6)
 #### ATAC 
-![](figures/Astrocyte_filtered_UMAP_Clusters_ATAC_QC.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_Clusters_ATAC_QC.png?v=6)
 #### Combined 
-![](figures/Astrocyte_filtered_UMAP_Clusters_Combined_QC.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_Clusters_Combined_QC.png?v=6)
 
 
 ## Per sample UMAP 
 
+⚠️ 🚨 **IMPORTANT:** We are using **geneIntegrationMatrix** instead of **TileMatrix** for this dataset 🚨⚠️
+
+## TileMatrix
+
+- **Definition:**  
+  500,000 genomic tiles (500 bp windows across the whole genome)
+
+- **Size:**  
+  62K cells × 500K tiles = **31 billion entries**
+
+- **Problem:**  
+  ❌ Too large to fit in memory
+
+
+## GeneIntegrationMatrix
+
+- **Definition:**  
+  ~20,000 genes (protein-coding genes only)
+
+- **Size:**  
+  62K cells × 20K genes = **1.24 billion entries**
+
+- **Memory usage:**  
+  ✅ ~25× smaller than TileMatrix
+
+
+## Why GeneIntegrationMatrix Works for Multiome Data
+
+When processing **multiome (ATAC + RNA)** data, **ArchR** automatically creates:
+
+- **GeneExpressionMatrix**  
+  RNA counts per gene
+
+- **GeneIntegrationMatrix**  
+  ATAC signal linked to genes
+
+
+
 #### RNA
-![](figures/Astrocyte_filtered_UMAP_RNA_SAMPLE_UMAP.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_RNA_SAMPLE_UMAP.png?v=6)
 #### ATAC
-![](figures/Astrocyte_filtered_UMAP_ATAC_SAMPLE_UMAP.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_ATAC_SAMPLE_UMAP.png?v=6)
 #### Combined
-![](figures/Astrocyte_filtered_UMAP_Combined_SAMPLE_UMAP.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_Combined_SAMPLE_UMAP.png?v=6)
 
 
 ## Clusters 
 
-![](figures/Astrocyte_filtered_UMAP_Combined_SAMPLES_GRID.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_Combined_SAMPLES_GRID.png?v=6)
 
 #### Combined 
 
-![](figures/Astrocyte_filtered_UMAP_BothSamples_CombinedClusters_UMAP.png?v=5)
+![](figures/Astrocyte_filtered_UMAP_BothSamples_CombinedClusters_UMAP.png?v=6)
 
 ## Marker genes 
 
-<img src="figures/Astrocyte_filtered_UMAP_Malat1_UMAP.png?v=3" alt="malat1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Slc1a3_UMAP.png?v=3" alt="slc1a3" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Sox2_UMAP.png?v=3" alt="sox2" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Notch1_UMAP.png?v=3" alt="notch1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Glul_UMAP.png?v=3" alt="glul" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Elavl4_UMAP.png?v=3" alt="elavl4" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Malat1_UMAP.png?v=4" alt="malat1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Slc1a3_UMAP.png?v=4" alt="slc1a3" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Apoe_UMAP.png?v=4" alt="apoe" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Prdx6_UMAP.png?v=3" alt="prdx6" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Sox11_UMAP.png?v=3" alt="sox11" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Lhx2_UMAP.png?v=3" alt="lhx2" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Tcf7l2_UMAP.png?v=4" alt="tcf7l2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Glul_UMAP.png?v=4" alt="glul" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Elavl4_UMAP.png?v=4" alt="elavl4" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Apoe_UMAP.png?v=3" alt="apoe" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Ascl1_UMAP.png?v=3" alt="ascl1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Olig2_UMAP.png?v=3" alt="olig2" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Sox9_UMAP.png?v=4" alt="sox9" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Elavl3_UMAP.png?v=4" alt="elavl3" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Sox2_UMAP.png?v=4" alt="sox2" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Slc6a9_UMAP.png?v=3" alt="slc6a9" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Aldh1l1_UMAP.png?v=3" alt="aldh1l1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Pax6_UMAP.png?v=3" alt="pax6" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Plp1_UMAP.png?v=4" alt="plp1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Pou3f2_UMAP.png?v=4" alt="pou3f2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Olig1_UMAP.png?v=4" alt="olig1" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Ntsr2_UMAP.png?v=3" alt="ntsr2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Aqp4_UMAP.png?v=3" alt="aqp4" width="33%"><img src="figures/Astrocyte_filtered_UMAP_S100b_UMAP.png?v=3" alt="s100b" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Aldoc_UMAP.png?v=4" alt="aldoc" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Arx_UMAP.png?v=4" alt="arx" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Ascl1_UMAP.png?v=4" alt="ascl1" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Aldoc_UMAP.png?v=3" alt="aldoc" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Sox10_UMAP.png?v=3" alt="sox10" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Dcx_UMAP.png?v=3" alt="dcx" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Aldh1l1_UMAP.png?v=4" alt="aldh1l1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Aqp4_UMAP.png?v=4" alt="aqp4" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Ntsr2_UMAP.png?v=4" alt="ntsr2" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Bcl11a_UMAP.png?v=3" alt="bcl11a" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Bsn_UMAP.png?v=3" alt="bsn" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Tubb3_UMAP.png?v=3" alt="tubb3" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Bcl11a_UMAP.png?v=4" alt="bcl11a" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Dcx_UMAP.png?v=4" alt="dcx" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Olig2_UMAP.png?v=4" alt="olig2" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Vim_UMAP.png?v=3" alt="vim" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Hes1_UMAP.png?v=3" alt="hes1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Clu_UMAP.png?v=3" alt="clu" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Clu_UMAP.png?v=4" alt="clu" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Sox10_UMAP.png?v=4" alt="sox10" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Gad2_UMAP.png?v=4" alt="gad2" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Gad1_UMAP.png?v=3" alt="gad1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Mbp_UMAP.png?v=3" alt="mbp" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Hes5_UMAP.png?v=3" alt="hes5" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_S100b_UMAP.png?v=4" alt="s100b" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Dlx1_UMAP.png?v=4" alt="dlx1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Gad1_UMAP.png?v=4" alt="gad1" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Prox1_UMAP.png?v=3" alt="prox1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Plp1_UMAP.png?v=3" alt="plp1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Rpe65_UMAP.png?v=3" alt="rpe65" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Tubb3_UMAP.png?v=4" alt="tubb3" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Bcl11b_UMAP.png?v=4" alt="bcl11b" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Prox1_UMAP.png?v=4" alt="prox1" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Mki67_UMAP.png?v=3" alt="mki67" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Insm1_UMAP.png?v=3" alt="insm1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Rlbp1_UMAP.png?v=3" alt="rlbp1" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Foxp2_UMAP.png?v=4" alt="foxp2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Dlx2_UMAP.png?v=4" alt="dlx2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Mbp_UMAP.png?v=4" alt="mbp" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Cdk1_UMAP.png?v=3" alt="cdk1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Neurog2_UMAP.png?v=3" alt="neurog2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Scrt1_UMAP.png?v=3" alt="scrt1" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Necab1_UMAP.png?v=4" alt="necab1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Hes5_UMAP.png?v=4" alt="hes5" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Scrt2_UMAP.png?v=4" alt="scrt2" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Gfap_UMAP.png?v=3" alt="gfap" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Rbfox3_UMAP.png?v=3" alt="rbfox3" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Abca8a_UMAP.png?v=3" alt="abca8a" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Cdk1_UMAP.png?v=4" alt="cdk1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Dlx6_UMAP.png?v=4" alt="dlx6" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Dlx5_UMAP.png?v=4" alt="dlx5" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Mpeg1_UMAP.png?v=3" alt="mpeg1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Csf1r_UMAP.png?v=3" alt="csf1r" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Pdgfra_UMAP.png?v=3" alt="pdgfra" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Neurog2_UMAP.png?v=4" alt="neurog2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Pdgfra_UMAP.png?v=4" alt="pdgfra" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Slc32a1_UMAP.png?v=4" alt="slc32a1" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Atoh7_UMAP.png?v=3" alt="atoh7" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Calb1_UMAP.png?v=3" alt="calb1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Calb2_UMAP.png?v=3" alt="calb2" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Scrt1_UMAP.png?v=4" alt="scrt1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Necab2_UMAP.png?v=4" alt="necab2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Pcp4_UMAP.png?v=4" alt="pcp4" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Npy_UMAP.png?v=3" alt="npy" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Slc17a7_UMAP.png?v=3" alt="slc17a7" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Prdm1_UMAP.png?v=3" alt="prdm1" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Reln_UMAP.png?v=4" alt="reln" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Mpeg1_UMAP.png?v=4" alt="mpeg1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Calb2_UMAP.png?v=4" alt="calb2" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Tfap2a_UMAP.png?v=3" alt="tfap2a" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Pax2_UMAP.png?v=3" alt="pax2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Cabp5_UMAP.png?v=3" alt="cabp5" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Calb1_UMAP.png?v=4" alt="calb1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Slc17a6_UMAP.png?v=4" alt="slc17a6" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Sst_UMAP.png?v=4" alt="sst" width="33%">
 
-<img src="figures/Astrocyte_filtered_UMAP_Kcnj8_UMAP.png?v=3" alt="kcnj8" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Chat_UMAP.png?v=3" alt="chat" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Ccr2_UMAP.png?v=3" alt="ccr2" width="33%">
-
-<img src="figures/Astrocyte_filtered_UMAP_Foxn4_UMAP.png?v=3" alt="foxn4" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Nrl_UMAP.png?v=3" alt="nrl" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Emx1_UMAP.png?v=3" alt="emx1" width="33%">
-
-<img src="figures/Astrocyte_filtered_UMAP_Rho_UMAP.png?v=3" alt="rho" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Lhx4_UMAP.png?v=3" alt="lhx4" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Otx2_UMAP.png?v=3" alt="otx2" width="33%">
-
-<img src="figures/Astrocyte_filtered_UMAP_Lhx1_UMAP.png?v=3" alt="lhx1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Isl1_UMAP.png?v=3" alt="isl1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Arr3_UMAP.png?v=3" alt="arr3" width="33%">
-
-<img src="figures/Astrocyte_filtered_UMAP_Acta2_UMAP.png?v=3" alt="acta2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Tie1_UMAP.png?v=3" alt="tie1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Sebox_UMAP.png?v=3" alt="sebox" width="33%">
-
-<img src="figures/Astrocyte_filtered_UMAP_Pou4f2_UMAP.png?v=3" alt="pou4f2" width="33%">
+<img src="figures/Astrocyte_filtered_UMAP_Npy_UMAP.png?v=4" alt="npy" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Lhx8_UMAP.png?v=4" alt="lhx8" width="33%">
 
 
 
 ## Annotations: NEED MORE WORK HERE 
 
-![annotations](figures/Astrocyte_filtered_UMAP_annotated.png?v=1)
 
 
 

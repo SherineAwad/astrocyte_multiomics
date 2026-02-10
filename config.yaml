@@ -12,11 +12,12 @@ umap_suffix: "_UMAP"
 annotation_suffix: "_annotated"
 MarkerGenes: markers.txt
 
-min_tss_enrichment: 5 
-min_nfrags: 1000 
-min_gex_ngenes: 500 
-max_gex_ngenes: 1000 
-min_gex_numi: 500  
-max_gex_numi: 50000 \
+
+min_tss_enrichment: 3
+min_nfrags: 50
+min_gex_ngenes: 20
+max_gex_ngenes: 15000
+min_gex_numi: 50
+max_gex_numi: 75000
 
 ANNOTATIONS: annotations.txt
