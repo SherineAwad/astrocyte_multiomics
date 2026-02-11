@@ -62,43 +62,7 @@ We used the following filtering criteria:
 
 ## Per sample UMAP 
 
-⚠️ 🚨 **IMPORTANT:** We are using **geneIntegrationMatrix** instead of **TileMatrix** for this dataset 🚨⚠️
-
-## TileMatrix
-
-- **Definition:**  
-  500,000 genomic tiles (500 bp windows across the whole genome)
-
-- **Size:**  
-  62K cells × 500K tiles = **31 billion entries**
-
-- **Problem:**  
-  ❌ Too large to fit in memory
-
-
-## GeneIntegrationMatrix
-
-- **Definition:**  
-  ~20,000 genes (protein-coding genes only)
-
-- **Size:**  
-  62K cells × 20K genes = **1.24 billion entries**
-
-- **Memory usage:**  
-  ✅ ~25× smaller than TileMatrix
-
-
-## Why GeneIntegrationMatrix Works for Multiome Data
-
-When processing **multiome (ATAC + RNA)** data, **ArchR** automatically creates:
-
-- **GeneExpressionMatrix**  
-  RNA counts per gene
-
-- **GeneIntegrationMatrix**  
-  ATAC signal linked to genes
-
-
+### 🚨⚠️ Note different params in `src/addUMAP.R`
 
 #### RNA
 ![](figures/Astrocyte_filtered_UMAP_RNA_SAMPLE_UMAP.png?v=6)

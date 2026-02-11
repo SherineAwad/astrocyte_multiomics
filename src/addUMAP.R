@@ -67,6 +67,7 @@ proj_ALL <- loadArchRProject(path = input_dir, force = FALSE, showLogo = TRUE)
 
 cat(sprintf("Loaded project with %d cells\n", nCells(proj_ALL)))
 
+# USE TILE MATRIX WITH MEMORY OPTIMIZATIONS
 proj_ALL <- addIterativeLSI(
   ArchRProj = proj_ALL,
   clusterParams = list(
@@ -75,9 +76,15 @@ proj_ALL <- addIterativeLSI(
     n.start = args$lsi_nstart
   ),
   saveIterations = FALSE,
-  useMatrix = "TileMatrix",
+  useMatrix = "TileMatrix",  # KEEPING TILE MATRIX AS YOU WANT
   depthCol = "nFrags",
-  name = "LSI_ATAC"
+  binarize = TRUE,
+  varFeatures = 5000,        # REDUCED from default 25K to save memory
+  iterations = 2,            # REDUCED from default 4
+  sampleCellsPre = 20000,    # Subsample for initial steps
+  scaleTo = 10000,           # Scale factor to reduce magnitude
+  name = "LSI_ATAC",
+  force = TRUE
 )
 
 proj_ALL <- addIterativeLSI(
@@ -93,7 +100,8 @@ proj_ALL <- addIterativeLSI(
   varFeatures = args$rna_var_features,
   firstSelection = "variable",
   binarize = FALSE,
-  name = "LSI_RNA"
+  name = "LSI_RNA",
+  force = TRUE
 )
 
 proj_ALL <- addCombinedDims(proj_ALL,

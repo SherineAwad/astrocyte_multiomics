@@ -3,13 +3,13 @@ configfile: "config.yaml"
 
 rule all:
     input:
-        directory(config["project_name"]),
-        directory(config["project_name"] + config["filter_suffix"]),
-        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]),
-        config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_Combined_UMAP.pdf",
-        config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_ATAC_UMAP.pdf",
-        config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
-        #"markers_done.txt",
+        #directory(config["project_name"]),
+        #directory(config["project_name"] + config["filter_suffix"]),
+        #directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]),
+        #config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_Combined_UMAP.pdf",
+        #config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_ATAC_UMAP.pdf",
+        #config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
+        "markers_done.txt",
         #directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]) + config["annotation_suffix"],
         #config["project_name"] + config["filter_suffix"] + config["umap_suffix"]+ "_annotated.png"
 
