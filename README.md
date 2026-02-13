@@ -18,7 +18,7 @@ We used the following filtering criteria:
 
 Cells were retained if they met the following thresholds: TSS enrichment ≥ 10, number of ATAC fragments ≥ 1,000, number of detected genes between 1,000 and 7,000, and number of RNA UMIs between 1,500 and 30,000. Only cells passing all criteria were included in downstream analyses.
 
-# Filtering Thresholds
+### Filtering Thresholds
 
 * min_tss_enrichment: 10
 * min_nfrags: 1000
@@ -27,17 +27,15 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 * min_gex_numi: 1500
 * max_gex_numi: 30000
 
+### Filtering summary 
 
+| Sample    | Before Filtering | After Filtering | % Retention |
+| --------- | ---------------- | --------------- | ----------- |
+| Control   | 60,328           | 11,162          | 18.5%       |
+| KO1       | 17,295           | 4,888           | 28.3%       |
+| KO2       | 59,364           | 14,605          | 24.6%       |
+| **Total** | 136,987          | 30,655          | 22.4%       |
 
-### Per sample filtering
-
-| Sample  | Before | After | % Kept |
-|---------|--------|-------|--------|
-| KO2     | 59,364 | 26,915 | 45.3% |
-| Control | 60,328 | 27,778 | 46.0% |
-| KO1     | 17,295 | 7,529  | 43.5% |
-
----
 
 
 [pre filter](figures/Astrocyte_preFilterQC.pdf)
