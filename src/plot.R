@@ -1,5 +1,3 @@
-#!/usr/bin/env Rscript
-
 library(ArchR)
 library(ggplot2)
 library(argparse)
@@ -133,7 +131,7 @@ if("Sample" %in% colnames(cell_col_data)) {
   }
 }
 
-# 2. UMAP per sample for COMBINED embedding only (removed RNA/ATAC)
+# 2. UMAP per sample for COMBINED embedding only
 if("Sample" %in% colnames(cell_col_data) && embedding_exists(proj_ALL, "UMAP_Combined")) {
   cat("Creating UMAP per sample for Combined embedding...\n")
   
@@ -161,7 +159,7 @@ if("Sample" %in% colnames(cell_col_data) && embedding_exists(proj_ALL, "UMAP_Com
   
   combined_plot <- wrap_plots(sample_plots, ncol = n_cols, nrow = n_rows)
   
-  pdf(paste0(base_name, args$suffix, "_Combined_SAMPLES_GRID.pdf"), 
+  pdf(paste0(base_name, args$suffix, "_Combined_SAMPLES_GRID.pdf"),
       width = 6 * n_cols, height = 5 * n_rows)
   print(combined_plot)
   dev.off()
@@ -169,7 +167,7 @@ if("Sample" %in% colnames(cell_col_data) && embedding_exists(proj_ALL, "UMAP_Com
   cat("  Created Combined_SAMPLES_GRID.pdf\n")
 }
 
-# 3. NEW: BOTH SAMPLES TOGETHER with clusters for annotation
+# 3. BOTH SAMPLES TOGETHER with clusters for annotation
 if("Sample" %in% colnames(cell_col_data) && embedding_exists(proj_ALL, "UMAP_Combined")) {
   cat("Creating both samples together with clusters...\n")
   
@@ -190,55 +188,99 @@ if("Sample" %in% colnames(cell_col_data) && embedding_exists(proj_ALL, "UMAP_Com
   cat("  Created BothSamples_CombinedClusters_UMAP.pdf\n")
 }
 
-# 4. QC plots per clusters
-cat("Creating QC plots per clusters...\n")
+# 4. CORRECTED: QC plots per clusters with proper assay-specific metrics
+cat("Creating QC plots per clusters with proper assay-specific metrics...\n")
 
-cluster_columns <- c("Clusters_RNA", "Clusters_ATAC", "Clusters_Combined")
-cluster_columns <- cluster_columns[cluster_columns %in% colnames(cell_col_data)]
+# CORRECT: TSSEnrichment is ATAC-seq specific, RNA-seq has no equivalent in ArchR
+qc_metrics_atac <- c("TSSEnrichment", "nFrags", "BlacklistRatio", "NucleosomeRatio")
+# RNA-seq has no standard QC metrics stored in cellColData (these are all ATAC metrics)
 
-qc_metrics <- c("TSSEnrichment", "nFrags", "BlacklistRatio", "NucleosomeRatio")
-qc_metrics <- qc_metrics[qc_metrics %in% colnames(cell_col_data)]
+# Only keep metrics that exist in the project
+qc_metrics_atac <- qc_metrics_atac[qc_metrics_atac %in% colnames(cell_col_data)]
 
-if(length(cluster_columns) > 0 && length(qc_metrics) > 0) {
-  for(cluster_col in cluster_columns) {
-    qc_plot_list <- list()
+# For Combined clusters - show ATAC QC metrics only (no RNA QC metrics exist)
+if("Clusters_Combined" %in% colnames(cell_col_data) && length(qc_metrics_atac) > 0) {
+  qc_plot_list <- list()
+  
+  # Add ATAC-specific QC plots (including TSSEnrichment)
+  for(qc_metric in qc_metrics_atac) {
+    df <- data.frame(
+      Cluster = cell_col_data[["Clusters_Combined"]],
+      Value = cell_col_data[[qc_metric]]
+    )
+    df <- df[complete.cases(df), ]
     
-    for(qc_metric in qc_metrics) {
-      df <- data.frame(
-        Cluster = cell_col_data[[cluster_col]],
-        Value = cell_col_data[[qc_metric]]
-      )
-      
-      df <- df[complete.cases(df), ]
-      
-      if(nrow(df) > 0) {
-        p <- ggplot(df, aes(x = Cluster, y = Value, fill = Cluster)) +
-          geom_violin(scale = "width", trim = TRUE) +
-          geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
-          theme_classic() +
-          theme(
-            axis.text.x = element_text(angle = 45, hjust = 1),
-            legend.position = "none"
-          ) +
-          labs(title = paste(qc_metric, "by", cluster_col))
-        
-        qc_plot_list[[qc_metric]] <- p
-      }
+    if(nrow(df) > 0) {
+      p <- ggplot(df, aes(x = Cluster, y = Value, fill = Cluster)) +
+        geom_violin(scale = "width", trim = TRUE) +
+        geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
+        theme_classic() +
+        theme(
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          legend.position = "none"
+        ) +
+        labs(title = paste(qc_metric, "(ATAC) by Combined Clusters"), 
+             y = qc_metric, x = "Cluster")
+      qc_plot_list[[qc_metric]] <- p
     }
+  }
+  
+  if(length(qc_plot_list) > 0) {
+    n_cols <- min(2, length(qc_plot_list))
+    n_rows <- ceiling(length(qc_plot_list) / n_cols)
     
-    if(length(qc_plot_list) > 0) {
-      n_cols <- min(2, length(qc_plot_list))
-      n_rows <- ceiling(length(qc_plot_list) / n_cols)
-      
-      combined_qc_plot <- wrap_plots(qc_plot_list, ncol = n_cols, nrow = n_rows)
-      
-      pdf(paste0(base_name, args$suffix, "_", cluster_col, "_QC.pdf"), 
-          width = 8 * n_cols, height = 6 * n_rows)
-      print(combined_qc_plot)
-      dev.off()
-      
-      cat(sprintf("  Created %s_QC.pdf\n", cluster_col))
+    combined_qc_plot <- wrap_plots(qc_plot_list, ncol = n_cols, nrow = n_rows)
+    
+    pdf(paste0(base_name, args$suffix, "_Clusters_Combined_QC.pdf"),
+        width = 8 * n_cols, height = 6 * n_rows)
+    print(combined_qc_plot)
+    dev.off()
+    cat("  Created Clusters_Combined_QC.pdf with ATAC metrics (TSSEnrichment, nFrags, BlacklistRatio, NucleosomeRatio)\n")
+  }
+}
+
+# For RNA clusters - NO QC METRICS (RNA-seq QC not stored in cellColData)
+if("Clusters_RNA" %in% colnames(cell_col_data)) {
+  cat("  NOTE: No RNA-seq QC metrics available in cellColData - skipping QC plots for RNA clusters\n")
+}
+
+# For ATAC clusters - only ATAC-specific QC metrics
+if("Clusters_ATAC" %in% colnames(cell_col_data) && length(qc_metrics_atac) > 0) {
+  qc_plot_list <- list()
+  
+  for(qc_metric in qc_metrics_atac) {
+    df <- data.frame(
+      Cluster = cell_col_data[["Clusters_ATAC"]],
+      Value = cell_col_data[[qc_metric]]
+    )
+    df <- df[complete.cases(df), ]
+    
+    if(nrow(df) > 0) {
+      p <- ggplot(df, aes(x = Cluster, y = Value, fill = Cluster)) +
+        geom_violin(scale = "width", trim = TRUE) +
+        geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
+        theme_classic() +
+        theme(
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          legend.position = "none"
+        ) +
+        labs(title = paste(qc_metric, "by ATAC Clusters"),
+             y = qc_metric, x = "Cluster")
+      qc_plot_list[[qc_metric]] <- p
     }
+  }
+  
+  if(length(qc_plot_list) > 0) {
+    n_cols <- min(2, length(qc_plot_list))
+    n_rows <- ceiling(length(qc_plot_list) / n_cols)
+    
+    combined_qc_plot <- wrap_plots(qc_plot_list, ncol = n_cols, nrow = n_rows)
+    
+    pdf(paste0(base_name, args$suffix, "_Clusters_ATAC_QC.pdf"),
+        width = 8 * n_cols, height = 6 * n_rows)
+    print(combined_qc_plot)
+    dev.off()
+    cat("  Created Clusters_ATAC_QC.pdf with ATAC metrics (TSSEnrichment, nFrags, BlacklistRatio, NucleosomeRatio)\n")
   }
 }
 
@@ -251,4 +293,6 @@ cat("\nNew files added:\n")
 cat("  *_SAMPLE_UMAP.pdf (colored by sample)\n")
 cat("  Combined_SAMPLES_GRID.pdf (each sample separately - Combined only)\n")
 cat("  BothSamples_CombinedClusters_UMAP.pdf (both samples with clusters)\n")
-cat("  *_QC.pdf (QC metrics per cluster)\n")
+cat("  Clusters_Combined_QC.pdf (ATAC metrics: TSSEnrichment, nFrags, BlacklistRatio, NucleosomeRatio)\n")
+cat("  Clusters_ATAC_QC.pdf (ATAC metrics: TSSEnrichment, nFrags, BlacklistRatio, NucleosomeRatio)\n")
+cat("  Clusters_RNA_QC.pdf - NOT CREATED (no RNA QC metrics in cellColData)\n")

@@ -29,7 +29,7 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 
 
-### Sample-wise Filtering
+### Per sample filtering
 
 | Sample  | Before | After | % Kept |
 |---------|--------|-------|--------|
@@ -45,10 +45,6 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 [post filter](figures/Astrocyte_postFilterQC.pdf)
 
 
-
-# old from here 
-
-
 ## UMAPs
 
 #### RNA 
@@ -60,8 +56,6 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 ## QCs 
 
-#### RNA 
-![](figures/Astrocyte_filtered_UMAP_Clusters_RNA_QC.png?v=7)
 #### ATAC 
 ![](figures/Astrocyte_filtered_UMAP_Clusters_ATAC_QC.png?v=7)
 #### Combined 
@@ -69,8 +63,6 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 
 ## Per sample UMAP 
-
-### 🚨⚠️ Note different params in `src/addUMAP.R`
 
 #### RNA
 ![](figures/Astrocyte_filtered_UMAP_RNA_SAMPLE_UMAP.png?v=7)
