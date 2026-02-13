@@ -14,12 +14,21 @@
 
 We used the following filtering criteria: 
 
-* **Minimum TSS enrichment**: Ensures sufficient transcription start site (TSS) signal for ATAC-seq data. Threshold is set to **3**.
-* **Minimum number of fragments**: Filters out cells with too few ATAC-seq fragments. Threshold is set to **50**.
-* **Minimum number of genes detected in RNA-seq**: Excludes low-quality cells with sparse transcript coverage. Threshold is set to **20**.
-* **Maximum number of genes detected in RNA-seq**: Removes potential multiplets or highly overexpressed cells. Threshold is set to **15,000**.
-* **Minimum number of UMIs in RNA-seq**: Ensures sufficient sequencing depth per cell. Threshold is set to **50**.
-* **Maximum number of UMIs in RNA-seq**: Filters out cells with abnormally high counts that may indicate doublets. Threshold is set to **75,000**.
+### Cell Filtering Criteria
+
+Cells were retained if they met the following thresholds: TSS enrichment ≥ 10, number of ATAC fragments ≥ 1,000, number of detected genes between 1,000 and 7,000, and number of RNA UMIs between 1,500 and 30,000. Only cells passing all criteria were included in downstream analyses.
+
+# Filtering Thresholds
+
+min_tss_enrichment: 10
+min_nfrags: 1000
+min_gex_ngenes: 1000
+max_gex_ngenes: 7000
+min_gex_numi: 1500
+max_gex_numi: 30000
+
+
+
 
 ### Sample-wise Filtering
 
