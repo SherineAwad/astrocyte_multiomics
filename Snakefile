@@ -88,7 +88,6 @@ rule plotMarkers:
         touch {output}
         """
 
-
 rule annotate:
     input:
        dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"])
@@ -99,5 +98,4 @@ rule annotate:
           annotations=config['ANNOTATIONS'],
           suffix=config['annotation_suffix']
     shell:
-      "Rscript src/annotate.R --project_name {input.dir} --annotation_file {params.annotations} --suffix {params.suffix}"
-
+      "Rscript src/annotate.R --project_name {input.dir} --annotation_file {params.annotations} --suffix {params.suffix} --remove_clusters 1 2 3 4 14"

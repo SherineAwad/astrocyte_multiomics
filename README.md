@@ -102,8 +102,10 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 <img src="figures/Astrocyte_filtered_UMAP_Tcf7l2_UMAP.png?v=5" alt="tcf7l2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Glul_UMAP.png?v=5" alt="glul" width="33%">
 <img src="figures/Astrocyte_filtered_UMAP_Acta2_UMAP.png?v=5" alt ="Acta2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Tie1_UMAP.png?v=5" alt ="Tie1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Csf1r_UMAP.png?v=5" alt ="Csf1r" width="33%">
 
-## Annotations: NEED MORE WORK HERE 
+## Annotations:
 
+
+![](figure/Astrocyte_filtered_UMAP_annotated.png?v=2)
 
 
 
