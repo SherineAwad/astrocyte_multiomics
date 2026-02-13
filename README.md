@@ -100,9 +100,7 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 <img src="figures/Astrocyte_filtered_UMAP_Cdk1_UMAP.png?v=5" alt="cdk1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Gad1_UMAP.png?v=5" alt="gad1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Pdgfra_UMAP.png?v=5" alt="pdgfra" width="33%">
 <img src="figures/Astrocyte_filtered_UMAP_Sst_UMAP.png?v=5" alt="sst" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Gad2_UMAP.png?v=5" alt="gad2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Plp1_UMAP.png?v=5" alt="plp1" width="33%">
 <img src="figures/Astrocyte_filtered_UMAP_Tcf7l2_UMAP.png?v=5" alt="tcf7l2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Glul_UMAP.png?v=5" alt="glul" width="33%">
-
-
-
+<img src="figures/Astrocyte_filtered_UMAP_Acta2_UMAP.png?v=5" alt ="Acta2" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Tie1_UMAP.png?v=5" alt ="Tie1" width="33%"><img src="figures/Astrocyte_filtered_UMAP_Csf1r_UMAP.png?v=5" alt ="Csf1r" width="33%">
 
 ## Annotations: NEED MORE WORK HERE 
 
