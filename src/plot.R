@@ -188,21 +188,22 @@ if("Sample" %in% colnames(cell_col_data) && embedding_exists(proj_ALL, "UMAP_Com
   cat("  Created BothSamples_CombinedClusters_UMAP.pdf\n")
 }
 
-# 4. CORRECTED: QC plots per clusters with proper assay-specific metrics
+# 4. FIXED: QC plots per clusters - COMBINED NOW SHOWS BOTH ATAC AND RNA METRICS
 cat("Creating QC plots per clusters with proper assay-specific metrics...\n")
 
-# CORRECT: TSSEnrichment is ATAC-seq specific, RNA-seq has no equivalent in ArchR
+# ATAC-specific QC metrics
 qc_metrics_atac <- c("TSSEnrichment", "nFrags", "BlacklistRatio", "NucleosomeRatio")
-# RNA-seq has no standard QC metrics stored in cellColData (these are all ATAC metrics)
-
-# Only keep metrics that exist in the project
 qc_metrics_atac <- qc_metrics_atac[qc_metrics_atac %in% colnames(cell_col_data)]
 
-# For Combined clusters - show ATAC QC metrics only (no RNA QC metrics exist)
-if("Clusters_Combined" %in% colnames(cell_col_data) && length(qc_metrics_atac) > 0) {
+# RNA QC metrics
+qc_metrics_rna <- c("Gex_nUMI", "Gex_nGenes", "Gex_Log10_nUMI", "Gex_Log10_nGenes")
+qc_metrics_rna <- qc_metrics_rna[qc_metrics_rna %in% colnames(cell_col_data)]
+
+# For Combined clusters - show BOTH ATAC and RNA QC metrics
+if("Clusters_Combined" %in% colnames(cell_col_data)) {
   qc_plot_list <- list()
   
-  # Add ATAC-specific QC plots (including TSSEnrichment)
+  # Add ATAC-specific QC plots
   for(qc_metric in qc_metrics_atac) {
     df <- data.frame(
       Cluster = cell_col_data[["Clusters_Combined"]],
@@ -219,7 +220,30 @@ if("Clusters_Combined" %in% colnames(cell_col_data) && length(qc_metrics_atac) >
           axis.text.x = element_text(angle = 45, hjust = 1),
           legend.position = "none"
         ) +
-        labs(title = paste(qc_metric, "(ATAC) by Combined Clusters"), 
+        labs(title = paste(qc_metric, "(ATAC)"), 
+             y = qc_metric, x = "Cluster")
+      qc_plot_list[[qc_metric]] <- p
+    }
+  }
+  
+  # Add RNA QC plots
+  for(qc_metric in qc_metrics_rna) {
+    df <- data.frame(
+      Cluster = cell_col_data[["Clusters_Combined"]],
+      Value = cell_col_data[[qc_metric]]
+    )
+    df <- df[complete.cases(df), ]
+    
+    if(nrow(df) > 0) {
+      p <- ggplot(df, aes(x = Cluster, y = Value, fill = Cluster)) +
+        geom_violin(scale = "width", trim = TRUE) +
+        geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
+        theme_classic() +
+        theme(
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          legend.position = "none"
+        ) +
+        labs(title = paste(qc_metric, "(RNA)"), 
              y = qc_metric, x = "Cluster")
       qc_plot_list[[qc_metric]] <- p
     }
@@ -235,13 +259,47 @@ if("Clusters_Combined" %in% colnames(cell_col_data) && length(qc_metrics_atac) >
         width = 8 * n_cols, height = 6 * n_rows)
     print(combined_qc_plot)
     dev.off()
-    cat("  Created Clusters_Combined_QC.pdf with ATAC metrics (TSSEnrichment, nFrags, BlacklistRatio, NucleosomeRatio)\n")
+    cat("  Created Clusters_Combined_QC.pdf with ATAC and RNA metrics\n")
   }
 }
 
-# For RNA clusters - NO QC METRICS (RNA-seq QC not stored in cellColData)
-if("Clusters_RNA" %in% colnames(cell_col_data)) {
-  cat("  NOTE: No RNA-seq QC metrics available in cellColData - skipping QC plots for RNA clusters\n")
+# For RNA clusters - RNA QC metrics
+if("Clusters_RNA" %in% colnames(cell_col_data) && length(qc_metrics_rna) > 0) {
+  qc_plot_list <- list()
+  
+  for(qc_metric in qc_metrics_rna) {
+    df <- data.frame(
+      Cluster = cell_col_data[["Clusters_RNA"]],
+      Value = cell_col_data[[qc_metric]]
+    )
+    df <- df[complete.cases(df), ]
+    
+    if(nrow(df) > 0) {
+      p <- ggplot(df, aes(x = Cluster, y = Value, fill = Cluster)) +
+        geom_violin(scale = "width", trim = TRUE) +
+        geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
+        theme_classic() +
+        theme(
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          legend.position = "none"
+        ) +
+        labs(title = qc_metric, y = qc_metric, x = "Cluster")
+      qc_plot_list[[qc_metric]] <- p
+    }
+  }
+  
+  if(length(qc_plot_list) > 0) {
+    n_cols <- min(2, length(qc_plot_list))
+    n_rows <- ceiling(length(qc_plot_list) / n_cols)
+    
+    combined_qc_plot <- wrap_plots(qc_plot_list, ncol = n_cols, nrow = n_rows)
+    
+    pdf(paste0(base_name, args$suffix, "_Clusters_RNA_QC.pdf"),
+        width = 8 * n_cols, height = 6 * n_rows)
+    print(combined_qc_plot)
+    dev.off()
+    cat("  Created Clusters_RNA_QC.pdf\n")
+  }
 }
 
 # For ATAC clusters - only ATAC-specific QC metrics
@@ -264,8 +322,7 @@ if("Clusters_ATAC" %in% colnames(cell_col_data) && length(qc_metrics_atac) > 0) 
           axis.text.x = element_text(angle = 45, hjust = 1),
           legend.position = "none"
         ) +
-        labs(title = paste(qc_metric, "by ATAC Clusters"),
-             y = qc_metric, x = "Cluster")
+        labs(title = qc_metric, y = qc_metric, x = "Cluster")
       qc_plot_list[[qc_metric]] <- p
     }
   }
@@ -280,7 +337,7 @@ if("Clusters_ATAC" %in% colnames(cell_col_data) && length(qc_metrics_atac) > 0) 
         width = 8 * n_cols, height = 6 * n_rows)
     print(combined_qc_plot)
     dev.off()
-    cat("  Created Clusters_ATAC_QC.pdf with ATAC metrics (TSSEnrichment, nFrags, BlacklistRatio, NucleosomeRatio)\n")
+    cat("  Created Clusters_ATAC_QC.pdf\n")
   }
 }
 
@@ -293,6 +350,6 @@ cat("\nNew files added:\n")
 cat("  *_SAMPLE_UMAP.pdf (colored by sample)\n")
 cat("  Combined_SAMPLES_GRID.pdf (each sample separately - Combined only)\n")
 cat("  BothSamples_CombinedClusters_UMAP.pdf (both samples with clusters)\n")
-cat("  Clusters_Combined_QC.pdf (ATAC metrics: TSSEnrichment, nFrags, BlacklistRatio, NucleosomeRatio)\n")
-cat("  Clusters_ATAC_QC.pdf (ATAC metrics: TSSEnrichment, nFrags, BlacklistRatio, NucleosomeRatio)\n")
-cat("  Clusters_RNA_QC.pdf - NOT CREATED (no RNA QC metrics in cellColData)\n")
+cat("  Clusters_Combined_QC.pdf (ATAC and RNA metrics)\n")
+cat("  Clusters_ATAC_QC.pdf (ATAC metrics only)\n")
+cat("  Clusters_RNA_QC.pdf (RNA metrics only)\n")

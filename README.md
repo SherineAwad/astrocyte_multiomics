@@ -56,6 +56,8 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 ## QCs 
 
+#### RNA
+![](figures/Astrocyte_filtered_UMAP_Clusters_RNA_QC.png?v=7)
 #### ATAC 
 ![](figures/Astrocyte_filtered_UMAP_Clusters_ATAC_QC.png?v=7)
 #### Combined 
