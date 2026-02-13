@@ -20,13 +20,12 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 # Filtering Thresholds
 
-min_tss_enrichment: 10
-min_nfrags: 1000
-min_gex_ngenes: 1000
-max_gex_ngenes: 7000
-min_gex_numi: 1500
-max_gex_numi: 30000
-
+* min_tss_enrichment: 10
+* min_nfrags: 1000
+* min_gex_ngenes: 1000
+* max_gex_ngenes: 7000
+* min_gex_numi: 1500
+* max_gex_numi: 30000
 
 
 
