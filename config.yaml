@@ -13,11 +13,13 @@ annotation_suffix: "_annotated"
 MarkerGenes: markers.txt
 
 
-min_tss_enrichment: 3
-min_nfrags: 50
-min_gex_ngenes: 20
-max_gex_ngenes: 15000
-min_gex_numi: 50
-max_gex_numi: 75000
+min_tss_enrichment: 10
+min_nfrags: 1000
+min_gex_ngenes: 1000
+max_gex_ngenes: 7000
+min_gex_numi: 1500
+max_gex_numi: 30000
+
+
 
 ANNOTATIONS: annotations.txt
