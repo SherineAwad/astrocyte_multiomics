@@ -11,7 +11,7 @@ rule all:
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
         "markers_done.txt",
         directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]) + config["annotation_suffix"],
-        config["project_name"] + config["filter_suffix"] + config["umap_suffix"]+ "_annotated.png"
+        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"]+config['peaks_suffix'])
 
 rule preprocess:
     input:
@@ -99,3 +99,15 @@ rule annotate:
           suffix=config['annotation_suffix']
     shell:
       "Rscript src/annotate.R --project_name {input.dir} --annotation_file {params.annotations} --suffix {params.suffix} --remove_clusters 1 2 3 4 14"
+
+
+rule markerPeaks: 
+    input: 
+       dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"])
+    params: 
+       config['peaks_suffix'] 
+    output: 
+      dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"]+config['peaks_suffix']) 
+    shell: 
+        "Rscript src/markerPeaks.R  --project_name {input} --suffix {params}" 
+        

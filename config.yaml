@@ -11,7 +11,7 @@ filter_suffix: "_filtered"
 umap_suffix: "_UMAP"
 annotation_suffix: "_annotated"
 MarkerGenes: markers.txt
-
+peaks_suffix: "_peaks"
 
 min_tss_enrichment: 10
 min_nfrags: 1000
