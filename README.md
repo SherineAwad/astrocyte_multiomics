@@ -111,18 +111,15 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 ## Marker Peaks 
 
-## What it does
-
 - Identifies genomic regions (peaks) that are representative of each cell type.  
 - These “marker peaks” capture the regions that are consistently active within a group of cells.  
 - They help show what makes each cell type unique at the chromatin level.  
 
-## How it works (conceptually)
+## How it works
 
 1. We look at all the cells and separates them into groups based on a chosen category (like cell type).  
 2. For each group, it examines the genomic regions associated with the cells in that group.  
 3. It identifies which regions are reliably present or active within that group, without comparing them to other groups.  
 4. The result is a set of regions that characterize each group — these are the marker peaks used for later analysis, like motif enrichment or visualization.  
-
 
 ![](figures/Peak-Call-Summary.png?v=1)
