@@ -11,8 +11,8 @@ rule all:
         config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + "_RNA_UMAP.pdf",
         "markers_done.txt",
         directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"]) + config["annotation_suffix"],
-        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"]+config['peaks_suffix'])
-
+        directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"]+config['peaks_suffix']),
+        #directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"]+config['peaks_suffix']+config['motif_suffix'])
 rule preprocess:
     input:
         config_csv=config["samples_csv"]
@@ -103,11 +103,25 @@ rule annotate:
 
 rule markerPeaks: 
     input: 
-       dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"])
+     dir = config["project_name"] + config["filter_suffix"] + \
+              config["umap_suffix"] + config["annotation_suffix"] 
     params: 
        config['peaks_suffix'] 
     output: 
       dir=directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"]+config['peaks_suffix']) 
     shell: 
         "Rscript src/markerPeaks.R  --project_name {input} --suffix {params}" 
-        
+
+
+
+rule motifEnrich: 
+    input: 
+        dir = config["project_name"] + config["filter_suffix"] + \
+              config["umap_suffix"] + config["annotation_suffix"] + \
+              config["peaks_suffix"]
+    params: 
+      suffix= config['motif_suffix']
+    output: 
+      dir = directory(config["project_name"] + config["filter_suffix"] + config["umap_suffix"] + config["annotation_suffix"]+config['peaks_suffix']+config['motif_suffix']) 
+    shell: 
+       "Rscript src/motifEnrich.R --project_name {input.dir} --motif_set cisbp --suffix {params.suffix}"        

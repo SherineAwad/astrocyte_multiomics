@@ -123,3 +123,8 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 4. The result is a set of regions that characterize each group — these are the marker peaks used for later analysis, like motif enrichment or visualization.  
 
 ![](figures/Peak-Call-Summary.png?v=1)
+
+
+##### WILL REPLOT LATER 
+
+![](figures/MarkerPeaks_Heatmap.png?V=2)

@@ -12,6 +12,7 @@ umap_suffix: "_UMAP"
 annotation_suffix: "_annotated"
 MarkerGenes: markers.txt
 peaks_suffix: "_peaks"
+motif_suffix: "_motifs"
 
 min_tss_enrichment: 10
 min_nfrags: 1000
