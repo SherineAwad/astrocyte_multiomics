@@ -128,3 +128,8 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 ##### WILL REPLOT LATER 
 
 ![](figures/MarkerPeaks_Heatmap.png?V=2)
+
+
+### Motif Enrichment 
+
+![](figures/MotifEnrichment_Heatmap.png?v=2)
