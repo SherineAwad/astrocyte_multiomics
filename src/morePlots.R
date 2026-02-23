@@ -3,6 +3,7 @@ suppressPackageStartupMessages({
   library(argparse)
   library(ComplexHeatmap)
   library(circlize)
+  library(grid)
 })
 
 # -----------------------------
@@ -17,6 +18,10 @@ args <- parser$parse_args()
 proj_dir <- args$project_name
 top_peaks <- args$top_peaks
 top_TFs <- args$top_TFs
+
+cat("Project directory:", proj_dir, "\n")
+cat("Top peaks requested:", top_peaks, "\n")
+cat("Top TFs requested:", top_TFs, "\n")
 
 # -----------------------------
 # Load project
@@ -39,26 +44,73 @@ cell_order_requested <- c(
 )
 
 # ============================================================
-# Helper function to get available cell types
+# Helper function to get available cell types in correct order
 # ============================================================
 get_available_celltypes <- function(proj, requested) {
-  available <- getCellColData(proj)$CellType %>% unique() %>% as.character()
-  intersect(requested, available)
+  available <- unique(getCellColData(proj)$CellType)
+  requested[requested %in% available]
 }
 
+available_celltypes <- get_available_celltypes(proj, cell_order_requested)
+cat("Available cell types in order:", paste(available_celltypes, collapse = " -> "), "\n")
+
 # ============================================================
-# 1) MARKER PEAKS HEATMAP (TOP N)
+# 1) MARKER PEAKS HEATMAP - WITH TOP_PEAKS LIMIT
 # ============================================================
-cat("Plotting marker peaks heatmap...\n")
+cat("\nPlotting marker peaks heatmap...\n")
 
 marker_file <- file.path(proj_dir, "markerPeaks_object.rds")
 if(file.exists(marker_file)) {
   markers <- readRDS(marker_file)
   
-  # Plot and save marker peaks heatmap
   tryCatch({
+    # Get the marker peaks matrix
+    marker_mat <- assay(markers)
+    
+    # Filter for significant markers first
+    # Get marker indices that pass cutoff
+    marker_list <- lapply(markers, function(x) {
+      if(!is.null(x$FDR) && !is.null(x$Log2FC)) {
+        which(x$FDR <= 0.01 & x$Log2FC >= 1)
+      } else {
+        integer(0)
+      }
+    })
+    
+    # Get unique significant peaks across all cell types
+    sig_peaks <- unique(unlist(lapply(names(marker_list), function(ct) {
+      if(length(marker_list[[ct]]) > 0) {
+        rownames(markers[[ct]])[marker_list[[ct]]]
+      }
+    })))
+    
+    cat("Significant peaks found:", length(sig_peaks), "\n")
+    
+    # Apply top_peaks limit
+    if(length(sig_peaks) > top_peaks) {
+      # Calculate variance for significant peaks only
+      sig_mat <- marker_mat[rownames(marker_mat) %in% sig_peaks, , drop = FALSE]
+      peak_var <- apply(sig_mat, 1, var, na.rm = TRUE)
+      top_peaks_use <- names(sort(peak_var, decreasing = TRUE))[1:top_peaks]
+      cat("Selecting top", top_peaks, "peaks by variance\n")
+    } else {
+      top_peaks_use <- sig_peaks
+      cat("Using all", length(sig_peaks), "significant peaks\n")
+    }
+    
+    # Create a custom marker subset
+    markers_subset <- markers
+    for(ct in names(markers_subset)) {
+      if(!is.null(markers_subset[[ct]])) {
+        # Keep only top peaks in each cell type's marker set
+        keep <- rownames(markers_subset[[ct]]) %in% top_peaks_use
+        markers_subset[[ct]] <- markers_subset[[ct]][keep, , drop = FALSE]
+      }
+    }
+    
+    # Plot with subset
     hm <- plotMarkerHeatmap(
-      seMarker = markers,
+      seMarker = markers_subset,
       cutOff = "FDR <= 0.01 & Log2FC >= 1",
       labelMarkers = NULL,
       transpose = FALSE
@@ -67,89 +119,109 @@ if(file.exists(marker_file)) {
     png(
       filename = file.path(proj_dir, "MarkerPeaks_Heatmap_Top.png"),
       width = 2200,
-      height = 2000,  # Increased height
+      height = min(3000, 800 + length(top_peaks_use) * 15),  # Dynamic height
       res = 200
     )
-    # Draw with better margins
-    draw(hm, 
+    draw(hm,
          heatmap_legend_side = "right",
-         padding = unit(c(2, 2, 2, 2), "cm"))  # Add padding
+         padding = unit(c(2, 2, 2, 2), "cm"))
     dev.off()
-    cat("✓ Marker peaks heatmap saved\n")
+    cat("✓ Marker peaks heatmap saved with", length(top_peaks_use), "peaks\n")
+    
   }, error = function(e) {
     cat("Error in marker peaks heatmap: ", e$message, "\n")
+    if(length(dev.list()) > 0) dev.off()
   })
 } else {
   cat("Warning: Marker peaks file not found\n")
 }
 
 # ============================================================
-# 2) MOTIF ENRICHMENT HEATMAP
+# 2) MOTIF ENRICHMENT HEATMAP - WITH ROW NAMES FIXED
 # ============================================================
-cat("Plotting motif enrichment heatmap...\n")
+cat("\nPlotting motif enrichment heatmap...\n")
 
 motif_file <- file.path(proj_dir, "motifEnrichment.rds")
 if(file.exists(motif_file)) {
   tryCatch({
-    # Read motif enrichment data
     motif_data <- readRDS(motif_file)
     motif_mat <- as.matrix(assay(motif_data))
     
-    # Get available cell types
-    available_cells <- intersect(cell_order_requested, colnames(motif_mat))
+    # CRITICAL: Extract and preserve motif names
+    motif_names <- rownames(motif_mat)
+    cat("Total motifs:", length(motif_names), "\n")
+    cat("First few motif names:", paste(head(motif_names, 3), collapse=", "), "\n")
     
-    if(length(available_cells) > 0) {
-      # Subset matrix
-      motif_mat <- motif_mat[, available_cells, drop = FALSE]
+    # Ensure columns are in correct order
+    cols_exist <- available_celltypes[available_celltypes %in% colnames(motif_mat)]
+    
+    if(length(cols_exist) > 0) {
+      motif_mat <- motif_mat[, cols_exist, drop = FALSE]
       
-      # Remove rows with all zeros or NA
-      motif_mat <- motif_mat[rowSums(is.na(motif_mat)) == 0, , drop = FALSE]
-      motif_mat <- motif_mat[rowSums(motif_mat) != 0, , drop = FALSE]
+      # Clean matrix
+      keep_rows <- complete.cases(motif_mat) & rowSums(motif_mat != 0) > 0
+      motif_mat <- motif_mat[keep_rows, , drop = FALSE]
+      motif_names <- rownames(motif_mat)  # Update names after filtering
+      
+      cat("Motifs after filtering:", length(motif_names), "\n")
       
       if(nrow(motif_mat) > 0) {
-        # Select top motifs by variance (if too many)
+        # Limit number of motifs shown
         if(nrow(motif_mat) > 100) {
-          motif_var <- apply(motif_mat, 1, var)
+          motif_var <- apply(motif_mat, 1, var, na.rm = TRUE)
           top_motifs <- names(sort(motif_var, decreasing = TRUE))[1:100]
           motif_mat <- motif_mat[top_motifs, , drop = FALSE]
+          motif_names <- rownames(motif_mat)
+          cat("Showing top 100 motifs by variance\n")
         }
+        
+        # Scale but PRESERVE ROW NAMES
+        motif_mat_scaled <- t(scale(t(motif_mat)))
+        motif_mat_scaled[is.nan(motif_mat_scaled)] <- 0
+        rownames(motif_mat_scaled) <- motif_names  # CRITICAL: Restore names
+        
+        # Calculate dimensions
+        n_rows <- nrow(motif_mat_scaled)
+        n_cols <- ncol(motif_mat_scaled)
+        width <- max(2400, n_cols * 150 + 600)
+        height <- max(2800, n_rows * 20 + 600)  # More height per row for names
         
         png(
           filename = file.path(proj_dir, "MotifEnrichment_Heatmap.png"),
-          width = 2400,  # Wider
-          height = 2800,  # Taller
+          width = width,
+          height = height,
           res = 200
         )
         
-        # Create heatmap with better formatting
+        # Create heatmap with row names forced to show
         ht <- Heatmap(
-          motif_mat,
+          motif_mat_scaled,
           name = "Motif Enrichment\n(z-score)",
-          cluster_rows = TRUE,
+          cluster_rows = FALSE,
           cluster_columns = FALSE,
           col = colorRamp2(c(-2, 0, 2), c("blue", "white", "red")),
-          show_row_names = FALSE,  # Hide row names if too many
-          show_row_dend = TRUE,
-          column_names_rot = 45,  # Rotate column names
-          column_names_gp = gpar(fontsize = 10),
+          show_row_names = TRUE,  # FORCE show row names
+          row_names_gp = gpar(fontsize = max(6, min(10, 200/n_rows))),  # Dynamic font size
+          row_names_max_width = unit(15, "cm"),  # Allow long names
+          row_names_side = "right",  # Put names on right for better visibility
+          column_names_rot = 45,
+          column_names_gp = gpar(fontsize = 12),
+          border = TRUE,
+          rect_gp = gpar(col = "white", lwd = 0.5),
           heatmap_legend_param = list(
-            title_gp = gpar(fontsize = 10),
-            labels_gp = gpar(fontsize = 8)
-          ),
-          border = TRUE
+            title_gp = gpar(fontsize = 10, fontface = "bold"),
+            labels_gp = gpar(fontsize = 9)
+          )
         )
         
-        draw(ht, 
-             padding = unit(c(2, 2, 2, 4), "cm"),  # Add right padding for legend
+        draw(ht,
+             padding = unit(c(2, 2, 2, 4), "cm"),
              heatmap_legend_side = "right")
         
         dev.off()
-        cat("✓ Motif enrichment heatmap saved\n")
-      } else {
-        cat("Warning: No valid motifs after filtering\n")
+        cat("✓ Motif enrichment heatmap saved with", n_rows, "motifs\n")
+        cat("  Row names are displayed (e.g.,", paste(head(motif_names, 3), collapse=", "), "...)\n")
       }
-    } else {
-      cat("Warning: No requested cell types found in motif matrix\n")
     }
   }, error = function(e) {
     cat("Error in motif enrichment: ", e$message, "\n")
@@ -160,46 +232,43 @@ if(file.exists(motif_file)) {
 }
 
 # ============================================================
-# 3) TF ACTIVITY HEATMAP (CORRECTED)
+# 3) TF ACTIVITY HEATMAP
 # ============================================================
-cat("Computing TF activity heatmap...\n")
+cat("\nComputing TF activity heatmap...\n")
 
 tryCatch({
-  # Correct way to get motif matrix in ArchR
   motif_matrix <- getMatrixFromProject(
     ArchRProj = proj,
     useMatrix = "MotifMatrix"
   )
   
-  # Get the deviation (z-score) matrix - this is the TF activity
-  # In ArchR, the MotifMatrix contains "deviations" (z-scores) and "matrix" (raw)
+  # Get deviation scores
   if("deviations" %in% names(assays(motif_matrix))) {
     tf_mat <- assay(motif_matrix, "deviations")
   } else {
-    tf_mat <- assay(motif_matrix)  # Fallback to first assay
+    tf_mat <- assay(motif_matrix)
   }
   
-  # Get cell types from project
+  # Get cell types
   cell_types <- getCellColData(proj)$CellType
-  available_cells <- intersect(cell_order_requested, unique(cell_types))
   
-  if(length(available_cells) > 0) {
-    # Calculate mean TF activity per cell type
-    tf_by_celltype <- matrix(0, 
-                             nrow = nrow(tf_mat), 
-                             ncol = length(available_cells),
-                             dimnames = list(rownames(tf_mat), available_cells))
+  if(length(available_celltypes) > 0) {
+    # Calculate mean per cell type
+    tf_by_celltype <- matrix(0,
+                            nrow = nrow(tf_mat),
+                            ncol = length(available_celltypes),
+                            dimnames = list(rownames(tf_mat), available_celltypes))
     
-    for(ct in available_cells) {
+    for(ct in available_celltypes) {
       cells_ct <- which(cell_types == ct)
       if(length(cells_ct) > 0) {
         tf_by_celltype[, ct] <- rowMeans(tf_mat[, cells_ct, drop = FALSE], na.rm = TRUE)
       }
     }
     
-    # Remove rows with all NA/zero
-    tf_by_celltype <- tf_by_celltype[ rowSums(is.na(tf_by_celltype)) == 0, , drop = FALSE]
-    tf_by_celltype <- tf_by_celltype[ rowSums(tf_by_celltype) != 0, , drop = FALSE]
+    # Clean matrix
+    tf_by_celltype <- tf_by_celltype[complete.cases(tf_by_celltype), , drop = FALSE]
+    tf_by_celltype <- tf_by_celltype[rowSums(tf_by_celltype != 0) > 0, , drop = FALSE]
     
     if(nrow(tf_by_celltype) > 0) {
       # Select top TFs by variance
@@ -211,52 +280,51 @@ tryCatch({
         top_tf_names <- names(sort(tf_var, decreasing = TRUE))[1:n_top]
         tf_mat_final <- tf_by_celltype[top_tf_names, , drop = FALSE]
         
-        # Plot TF activity heatmap
+        # Scale
+        tf_mat_scaled <- t(scale(t(tf_mat_final)))
+        tf_mat_scaled[is.nan(tf_mat_scaled)] <- 0
+        
+        # Calculate dimensions
+        n_rows <- nrow(tf_mat_scaled)
+        n_cols <- ncol(tf_mat_scaled)
+        width <- max(2400, n_cols * 150 + 600)
+        height <- max(2800, n_rows * 25 + 600)
+        
         png(
           filename = file.path(proj_dir, "TFactivity_Heatmap.png"),
-          width = 2400,
-          height = 2800,
+          width = width,
+          height = height,
           res = 200
         )
         
         ht <- Heatmap(
-          tf_mat_final,
+          tf_mat_scaled,
           name = "TF Activity\n(z-score)",
-          cluster_rows = TRUE,
+          cluster_rows = FALSE,
           cluster_columns = FALSE,
           col = colorRamp2(c(-2, 0, 2), c("blue", "white", "red")),
-          row_names_gp = gpar(fontsize = 8),
+          row_names_gp = gpar(fontsize = 10),
+          row_names_side = "right",
           column_names_rot = 45,
-          column_names_gp = gpar(fontsize = 10),
-          heatmap_legend_param = list(
-            title_gp = gpar(fontsize = 10),
-            labels_gp = gpar(fontsize = 8)
-          ),
-          border = TRUE
+          column_names_gp = gpar(fontsize = 12),
+          border = TRUE,
+          rect_gp = gpar(col = "white", lwd = 0.5)
         )
         
-        draw(ht, 
+        draw(ht,
              padding = unit(c(2, 2, 2, 4), "cm"),
              heatmap_legend_side = "right")
         
         dev.off()
-        cat("✓ TF activity heatmap saved\n")
-      } else {
-        cat("Warning: No variance in TF activity\n")
+        cat("✓ TF activity heatmap saved with", n_rows, "TFs\n")
       }
-    } else {
-      cat("Warning: TF activity matrix empty after filtering\n")
     }
-  } else {
-    cat("Warning: No requested cell types found\n")
   }
 }, error = function(e) {
   cat("Error in TF activity: ", e$message, "\n")
   if(length(dev.list()) > 0) dev.off()
 })
 
-cat("\n=== ALL PLOTS COMPLETED ===\n")
-cat("Check the project directory for:\n")
-cat("  - MarkerPeaks_Heatmap_Top.png\n")
-cat("  - MotifEnrichment_Heatmap.png\n")
-cat("  - TFactivity_Heatmap.png\n")
+cat("\n========================================\n")
+cat("ALL PLOTS COMPLETED\n")
+cat("========================================\n")
