@@ -124,6 +124,8 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 ![](figures/Peak-Call-Summary.png?v=1)
 
+
+### WILL ENHANCE PLOTS 
 ### Marker Peaks
 
 ![](figures/MarkerPeaks_Heatmap_Top.png?v=1) 
