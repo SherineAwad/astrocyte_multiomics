@@ -128,12 +128,12 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 ### WILL ENHANCE PLOTS 
 ### Marker Peaks
 
-![](figures/MarkerPeaks_Heatmap_Top.png?v=3) 
+![](figures/MarkerPeaks_Heatmap_Top.png?v=4) 
 	
 ### Motif Enrichment 
 
-![](figures/MotifEnrichment_Heatmap.png?v=3) 
+![](figures/MotifEnrichment_Heatmap.png?v=4) 
 
 ### TF activity 
 
-![](figures/TFactivity_Heatmap.png?v=3)
+![](figures/TFactivity_Heatmap.png?v=4)
