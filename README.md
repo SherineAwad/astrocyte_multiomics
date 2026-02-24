@@ -125,7 +125,14 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 ![](figures/Peak-Call-Summary.png?v=1)
 
 
-### Marker Peaks: Top 3 
+## Peak annotation Summary
+
+- **Total cells loaded:** 29,836  
+- **Number of peaks identified:** 170,216  
+
+[Download annotated peaks here](https://docs.google.com/spreadsheets/d/1lAWE5TT2fNm4f9iTJawnzPyxQSGT2DT2YqavbwXoabw/edit?usp=sharing)
+
+### Marker Peaks 
 
 ![](figures/MarkerPeaks_Heatmap_Top.png?v=4) 
 	
@@ -133,6 +140,6 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 ![](figures/MotifEnrichment_Heatmap.png?v=5) 
 
-### TF activity: Top 3 
+### TF activity 
 
 ![](figures/TFactivity_Heatmap.png?v=5)
