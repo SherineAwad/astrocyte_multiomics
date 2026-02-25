@@ -132,7 +132,7 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 [Download annotated peaks here](https://docs.google.com/spreadsheets/d/1lAWE5TT2fNm4f9iTJawnzPyxQSGT2DT2YqavbwXoabw/edit?usp=sharing)
 
-### Marker Peaks 
+### Marker Peaks: Had to replot - ranked by genomic position - had to pick based on p-value 
 
 ![](figures/1_peak_heatmap.png?v=2)
 	
