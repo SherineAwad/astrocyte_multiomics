@@ -134,12 +134,13 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 ### Marker Peaks 
 
-![](figures/MarkerPeaks_Heatmap_Top.png?v=4) 
+![](figures/1_peak_heatmap.png?v=1)
 	
 ### Motif Enrichment 
 
-![](figures/MotifEnrichment_Heatmap.png?v=5) 
+![](figures/2_motif_heatmap.png?v=1)
 
 ### TF activity 
 
-![](figures/TFactivity_Heatmap.png?v=5)
+![](figures/3_tf_activity_heatmap.png?v=1)
+
