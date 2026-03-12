@@ -124,6 +124,15 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 ![](figures/Peak-Call-Summary.png?v=1)
 
+
+
+
+### Motif Enrichment 
+
+![](figures/MotifsEnrchHeatmap.png?v=2)
+
+
+
 # 🚨🚨🚨🚨🚨🚨
 # 🚨🚨🚨 PLOTS FROM HERE SORTED ALPHABETICALLY — NEED TO REPLOT SORTED BY P-VALUE 
 # 🚨🚨🚨🚨🚨🚨
@@ -140,9 +149,6 @@ Cells were retained if they met the following thresholds: TSS enrichment ≥ 10,
 
 ![](figures/1_peak_heatmap.png?v=2)
 	
-### Motif Enrichment 
-
-![](figures/2_motif_heatmap.png?v=2)
 
 ### TF activity 
 
